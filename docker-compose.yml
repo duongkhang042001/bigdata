@@ -1,0 +1,42 @@
+services:
+    # Backend service
+    backend:
+        build:
+            context: ./backend-app
+            dockerfile: Dockerfile
+        container_name: foody-buddy-backend
+        ports:
+            - "19999:8000"
+        environment:
+            - APP_ENV=development
+            - DATABASE_URL=postgresql://admin:Abc123@160.191.88.194:5432/foody_buddy
+            - GEMINI_API_KEY=AIzaSyCYlQgiz3SHtTjjm-6NeeMHlFn1KVzqSAs
+            - GEMINI_MODEL=gemini-pro
+            - GEMINI_MAX_TOKENS=1000
+            - GEMINI_TEMPERATURE=0.7
+        restart: unless-stopped
+        networks:
+            - foody-buddy-network
+        volumes:
+            - ./backend-app:/app
+            - /app/__pycache__
+
+    # Frontend service
+    frontend:
+        build:
+            context: ./ui
+            dockerfile: Dockerfile
+            args:
+                VITE_BASE_URL: http://160.191.88.194:19999/api/v1
+        container_name: foody-buddy-frontend
+        ports:
+            - "9999:3000"
+        restart: unless-stopped
+        networks:
+            - foody-buddy-network
+        depends_on:
+            - backend
+
+networks:
+    foody-buddy-network:
+        driver: bridge
